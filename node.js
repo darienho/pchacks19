@@ -1,6 +1,4 @@
-
 // hosting on 8088
-
 var express = require('express');
 var app = express();
 
@@ -13,7 +11,6 @@ app.put('/api/remove', function (req, res) {
 	var result = {};
   	res.status();
 	res.json(result);
-
 });
 
 // remove ingrediant
@@ -22,6 +19,8 @@ app.put('/api/add', function (req, res) {
   	res.status();
 	res.json(result);
 });
+
+app.use(express.static('static')); 
 
 app.listen(8088, function () {
   console.log('Example app listening on port 8088!');
