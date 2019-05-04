@@ -5,12 +5,16 @@ var bodyParser = require('body-parser');
 var app = express();
 
 app.use('/',express.static('static_files')); // this directory has files to be returned
-app.use(express.json());
-app.use(bodyParser.json({limit: "50mb"}));
-app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
+// app.use(express.json({limit: '50mb'}));
+// app.use(express.urlencoded({limit: '50mb'}));
+// app.use(bodyParser.json({limit: "50mb"}));
+// app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
+app.use(express.static('static')); 
+
 
 var Storage = multer.diskStorage({ destination: function(req, file, callback) { callback(null, "./Images"); }, filename: function(req, file, callback) { callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname); } });
-var upload = multer({storage: Storage}).array("imgUploader", 3);
+// var upload = multer({storage: Storage}).array("imgUploader", 3);
+var upload = multer({ dest: 'uploads/' })
 
 // ********************************************
 
@@ -24,16 +28,21 @@ app.get("/", function(req, res) {
 	res.sendFile(__dirname + "/index.html");
 });
 
-app.post("/api/Upload", bodyParser.json({limit: "50mb"}), function(req, res) {
-	console.log(req);
-	upload(req, res, function(err) {
-		if (err) {
-			console.log(err);
-			return res.end("Something went wrong!");
-		}
-		console.log("i did it");
-		return res.end("File uploaded sucessfully!.");
-	});
+// app.post("/api/Upload", bodyParser.json({limit: "10mb"}), function(req, res) {
+// 	console.log(req);
+// 	upload(req, res, function(err) {
+// 		if (err) {
+// 			console.log(err);
+// 			return res.end("Something went wrong!");
+// 		}
+// 		console.log("i did it");
+// 		return res.end("File uploaded sucessfully!.");
+// 	});
+// });
+
+app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
+    console.log(req.files)
+    res.send("done");
 });
 
 // remove ingrediant
@@ -51,7 +60,7 @@ app.put('/api/add', function (req, res) {
 	console.log(req.body.name);
 });
 
-app.use(express.static('static')); 
+
 
 app.listen(8088, function () {
   console.log('Example app listening on port 8088!');

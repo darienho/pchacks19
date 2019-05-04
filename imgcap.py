@@ -27,8 +27,8 @@ while True:
         print("{} written!".format(img_name))
         img_counter += 1
 
-        files = {'media': open(img_name, 'rb')}
-        requests.post('http://localhost:8088/api/Upload/', files=files, headers={'Content-Type': 'application/json'})
+        files = {'file': open(img_name, 'rb')}
+        requests.post('http://localhost:8088/api/Upload/', files=files)
 
 cam.release()
 
