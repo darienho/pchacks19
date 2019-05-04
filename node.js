@@ -4,6 +4,15 @@ var multer = require('multer');
 var bodyParser = require('body-parser');
 var app = express();
 
+// import watson
+var VisualRecognitionV3 = require('watson-developer-cloud/visual-recognition/v3');
+
+var visualRecognition = new VisualRecognitionV3({
+  version: '2018-03-19',
+  iam_apikey: '0OCx1KkkHwPXrfwRVbPwoCLt25k3rJxEcE0kHCE26HsJ'
+});
+// end of import
+
 app.use('/',express.static('static_files')); // this directory has files to be returned
 // app.use(express.json({limit: '50mb'}));
 // app.use(express.urlencoded({limit: '50mb'}));
@@ -14,7 +23,7 @@ app.use(express.static('static'));
 
 var Storage = multer.diskStorage({ destination: function(req, file, callback) { callback(null, "./Images"); }, filename: function(req, file, callback) { callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname); } });
 // var upload = multer({storage: Storage}).array("imgUploader", 3);
-var upload = multer({ dest: 'uploads/' })
+var upload = multer({ dest: 'static/uploads/' })
 
 // ********************************************
 
@@ -42,6 +51,30 @@ app.get("/", function(req, res) {
 
 app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
     console.log(req.files)
+
+
+
+
+    res.send("done");
+});
+
+app.post('/api/Upload2', upload.array('file', 12), function (req, res, next) {
+    
+	var url = 'https://edb1b6a7.ngrok.io/live-preview-potato.png';
+	var classifier_ids = ["food"];
+
+	var params = {
+  		url: url,
+  		classifier_ids: classifier_ids
+	};
+
+	visualRecognition.classify(params, function(err, response) {
+  		if (err)
+    		console.log(err);
+  		else
+    		console.log(JSON.stringify(response, null, 2))
+		});
+
     res.send("done");
 });
 
