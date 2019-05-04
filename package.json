@@ -1,0 +1,25 @@
+{
+  "name": "pchacks19",
+  "version": "1.0.0",
+  "description": "",
+  "main": "node.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darienho/pchacks19.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/darienho/pchacks19/issues"
+  },
+  "homepage": "https://github.com/darienho/pchacks19#readme",
+  "dependencies": {
+    "JSON": "^1.0.0",
+    "express": "^4.16.4",
+    "watson-developer-cloud": "^4.0.1",
+    "ws": "^7.0.0"
+  }
+}
