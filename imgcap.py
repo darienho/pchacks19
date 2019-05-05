@@ -22,6 +22,7 @@ while True:
         break
     elif k%256 == 32:
         # SPACE pressed
+        # Changed so that saves to same file -> go slow
         img_name = "opencv_frame_{}.png".format(img_counter)
         cv2.imwrite(img_name, frame)
         print("{} written!".format(img_name))

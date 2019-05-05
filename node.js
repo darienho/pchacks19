@@ -4,24 +4,22 @@ var multer = require('multer');
 var bodyParser = require('body-parser');
 var app = express();
 var ingredients=[];
+var http = require('http'),
+	url = require('url');
 
 const WebHook = "https://edb1b6a7.ngrok.io";
-
 
 // import watson
 var VisualRecognitionV3 = require('watson-developer-cloud/visual-recognition/v3');
 
 var visualRecognition = new VisualRecognitionV3({
   version: '2018-03-19',
+  // vvv Remove later vvv
   iam_apikey: '0OCx1KkkHwPXrfwRVbPwoCLt25k3rJxEcE0kHCE26HsJ'
 });
 // end of import
 
 app.use('/',express.static('static_files')); // this directory has files to be returned
-// app.use(express.json({limit: '50mb'}));
-// app.use(express.urlencoded({limit: '50mb'}));
-// app.use(bodyParser.json({limit: "50mb"}));
-// app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
 app.use(express.static('static')); 
 
 
@@ -68,11 +66,11 @@ app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
     		console.log(lst)
     		var lst1 = [];
     		for (var i =0 ; i< lst.length; i++){
-    			if (lst[i].type_hierarchy){
+    			if (lst[i].type_hierarchy || ! lst[i].class.includes()){
     				// This is shit code -> From Anthony to Anthony
     				var b = true;
     				for (var j =0; j<ingredients.length; j++){
-    					if (ingredients[j] === lst[i].class){
+    					if (ingredients[j] === lst[i].class ){
     						b=false;
     					}
     				}
@@ -92,7 +90,14 @@ app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
 
 // remove ingredient
 app.put('/api/remove/:ingredient', function (req, res) {
+	// Gotta Finish this
 	var i = req.params.ingredient;
+	for (var j =0; j<ingredients.length; j++){
+    	if (ingredients[j] === i){
+    		b=false;
+    	}
+    }
+
 	var result = {};
   	res.status();
 	res.json(result);
@@ -102,7 +107,11 @@ app.listen(8088, function () {
   console.log('Example app listening on port 8088!');
 });
 
+
+
+
 // **********************************************************
+// websocketstuff -> YAY!
 
 var WebSocketServer = require('ws').Server
    ,wss = new WebSocketServer({port: 8090});
@@ -114,14 +123,22 @@ wss.on('close', function() {
 });
 
 wss.broadcast = function(message){
+	// send everyone updates ingredient lst
+	retval = {'ingredient': ingredients};
 	for(let ws of this.clients){ 
-		ws.send(message); 
+		ws.send(JSON.stringify(retval)); 
 	}
 }
 
 wss.on('connection', function(ws) {	
-	wss.broadcast("");
+	// Send ingredients on connection
+	retval = {'ingredient': ingredients};
+	console.log(retval)
+	ws.send(JSON.stringify(retval)); 
+	// Setup websocket to receive -> wont use but who cares
 	ws.on('message', function(message) {
-		wss.broadcast(message);
+		// Do nothing on message
 	});
 });
+
+// **********************************************

@@ -1,72 +1,43 @@
 
+var socket;
 
 class App extends React.Component{
 	constructor(props){
 		super(props);
-		this.state = {'lst' : ['apple', 'banana', 'cheese'],
-						'r':[
-      {
-         "title":"All Purpose Seasoning Salt",
-         "href":"http:\/\/www.recipezaar.com\/All-Purpose-Seasoning-Salt-209434",
-         "ingredients":"garlic, onions, black pepper, kosher salt",
-         "thumbnail":"http:\/\/img.recipepuppy.com\/55071.jpg"
-      },
-      {
-         "title":"Grilled Jalapeno Buffalo Burgers",
-         "href":"http:\/\/www.recipezaar.com\/Grilled-Jalapeno-Buffalo-Burgers-4805",
-         "ingredients":"garlic, buffalo, jalapeno, onions",
-         "thumbnail":"http:\/\/img.recipepuppy.com\/220879.jpg"
-      },
-      {
-         "title":"Caramelized Onions",
-         "href":"http:\/\/www.recipezaar.com\/Caramelized-Onions-49000",
-         "ingredients":"garlic, olive oil, onions, salt",
-         "thumbnail":"http:\/\/img.recipepuppy.com\/281743.jpg"
-      },
-      {
-         "title":"Cornish Game Hens With Garlic Cloves and Onion",
-         "href":"http:\/\/www.recipezaar.com\/Cornish-Game-Hens-With-Garlic-Cloves-and-Onion-161812",
-         "ingredients":"cornish hens, garlic, salt, onions",
-         "thumbnail":"http:\/\/img.recipepuppy.com\/324701.jpg"
-      },
-      {
-         "title":"Easy 4 Ingredient Salmon Teriyaki",
-         "href":"http:\/\/www.recipezaar.com\/Easy-4-Ingredient-Salmon-Teriyaki-271585",
-         "ingredients":"garlic, teriyaki sauce, onions, salmon",
-         "thumbnail":"http:\/\/img.recipepuppy.com\/510750.jpg"
-      },
-      {
-         "title":"\n                  King Crab Legs Over Rice Recipe\n                  \n",
-         "href":"http:\/\/cookeatshare.com\/recipes\/king-crab-legs-over-rice-44677",
-         "ingredients":"crab meat, onions, garlic, rice",
-         "thumbnail":"http:\/\/img.recipepuppy.com\/668145.jpg"
-      },
-      {
-         "title":"Crock Pot Caramelized Onions",
-         "href":"http:\/\/www.recipezaar.com\/Crock-Pot-Caramelized-Onions-102934",
-         "ingredients":"beef broth, butter, garlic, onions",
-         "thumbnail":"http:\/\/img.recipepuppy.com\/39060.jpg"
-      },
-      {
-         "title":"Slow Cooker Chile Verde",
-         "href":"http:\/\/allrecipes.com\/Recipe\/Slow-Cooker-Chile-Verde\/Detail.aspx",
-         "ingredients":"garlic, olive oil, onions, pork chops",
-         "thumbnail":"http:\/\/img.recipepuppy.com\/12711.jpg"
-      },
-      {
-         "title":"Best Black Beans",
-         "href":"http:\/\/allrecipes.com\/Recipe\/Best-Black-Beans\/Detail.aspx",
-         "ingredients":"cayenne, garlic, onions, salt",
-         "thumbnail":"http:\/\/img.recipepuppy.com\/17438.jpg"
-      },
-      {
-         "title":"Chicken Puffs",
-         "href":"http:\/\/allrecipes.com\/Recipe\/Chicken-Puffs\/Detail.aspx",
-         "ingredients":"butter, chicken, garlic, onions",
-         "thumbnail":"http:\/\/img.recipepuppy.com\/26549.jpg"
-      }
-   ]};
+		this.state = {'lst' : [''],
+						'r':['']}; 
+
+      // Setup socket
+      // websocket on port 8090
+      socket = new WebSocket("ws://localhost:8090");
+      // What to do when opened
+      socket.onopen = function (event) {
+         console.log("connected");
+      };
+
+      // onclose send alert
+      socket.onclose = function (event) {
+            alert("closed code:" + event.code + " reason:" +event.reason + " wasClean:"+event.wasClean);
+      };
+      this.updateFood = this.updateFood.bind(this);
+
+      socket.onmessage = this.updateFood;
 	}
+   updateFood (event){
+         var data=JSON.parse(event.data);
+         
+         var foodlst= data.ingredient;
+         console.log(foodlst);
+
+
+         var callback =  (function(food, recipes){
+            this.setState({'lst':food,
+                     'r': recipes})
+         }).bind(this);
+         // Update Recipes
+         updateRecipes(foodlst, callback);
+         // using recipepuppy for recipes
+   }
 
 	render(){
 		
@@ -81,6 +52,33 @@ class App extends React.Component{
 			)
 	
 	}
+}
+
+function updateRecipes(foodlst, callback){
+   var s=""
+
+   foodlst.forEach(function(i){
+      s+= i+','
+   })
+   // $.ajax({ 
+   //    method: "GET", 
+   //    url: "http://localhost:8000/www.recipepuppy.com/api/"+s
+   // }).done(function(data){
+   //    callback(foodlst, data.results)
+   //    });
+   fetch(
+  "http://recipepuppyproxy.herokuapp.com/api/?i=" + s)
+   .then(function(response) {
+      if (response.status !== 200) {
+         console.log("Broken: " + response.status);
+         return;
+      }
+      console.log('now here')
+      response.json().then(function(data) {
+         callback(foodlst, data.results)
+   })
+   })
+
 }
 
 
