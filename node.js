@@ -94,7 +94,7 @@ app.put('/api/remove/:ingredient', function (req, res) {
 	var i = req.params.ingredient;
 	for (var j =0; j<ingredients.length; j++){
     	if (ingredients[j] === i){
-    		b=false;
+    		ingredients.splice(j, 1);
     	}
     }
 
