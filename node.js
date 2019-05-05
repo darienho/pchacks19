@@ -7,7 +7,7 @@ var ingredients=[];
 var http = require('http'),
 	url = require('url');
 
-const WebHook = "https://edb1b6a7.ngrok.io";
+const WebHook = "https://5c906d00.ngrok.io";
 
 // import watson
 var VisualRecognitionV3 = require('watson-developer-cloud/visual-recognition/v3');
@@ -45,6 +45,8 @@ app.get("/", function(req, res) {
 // Send image to watson + Update ingredient list
 app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
     
+	console.log(req.files)
+
     // Make sure to change
 	var url = WebHook+'/uploads/'+ req.files[0].originalname;	
 	var classifier_ids = ["food"];
@@ -53,7 +55,7 @@ app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
   		url: url,
   		classifier_ids: classifier_ids
 	};
-
+	setTimeout(function(){
 	visualRecognition.classify(params, function(err, response) {
   		if (err)
   			// Failure
@@ -66,7 +68,7 @@ app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
     		console.log(lst)
     		var lst1 = [];
     		for (var i =0 ; i< lst.length; i++){
-    			if (lst[i].type_hierarchy || ! lst[i].class.includes()){
+    			if (lst[i].type_hierarchy && ! lst[i].class.includes(' ') && !lst[i].class==='non-food'){
     				// This is shit code -> From Anthony to Anthony
     				var b = true;
     				for (var j =0; j<ingredients.length; j++){
@@ -76,7 +78,7 @@ app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
     				}
     				if (b){
 						ingredients.push(lst[i].class);
-    				}
+    		}
     				// End of shit code
     			}
     		}
@@ -84,22 +86,25 @@ app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
     		// We want to broadcast all ingredients after
     		wss.broadcast("");
     		}
-		});
+		});}, 3000);
     res.send("done");
 });
 
 // remove ingredient
-app.put('/api/remove/:ingredient', function (req, res) {
+app.get('/api/remove/:ingredient', function (req, res) {
 	// Gotta Finish this
 	var i = req.params.ingredient;
 	for (var j =0; j<ingredients.length; j++){
     	if (ingredients[j] === i){
     		ingredients.splice(j, 1);
+
+    		break;
     	}
     }
+    wss.broadcast("");
 
 	var result = {};
-  	res.status();
+  	res.status(200);
 	res.json(result);
 });
 

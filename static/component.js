@@ -44,7 +44,7 @@ class App extends React.Component{
 		return(
 			<div>
 				<h1>Ingredients</h1>
-				<Ingredient food={this.state.lst} /> 
+				<IngredientLst food={this.state.lst} /> 
 				<br />
 				<h1>Recipes</h1>
 				<RecipeLst recipes={this.state.r} />
@@ -86,10 +86,12 @@ function updateRecipes(foodlst, callback){
 // ingredient sections
 
 
-class Ingredient extends React.Component{
+class IngredientLst extends React.Component{
 	constructor(props){
 		super(props)
 	}
+
+
 	render(props){
 		var lst = this.props.food
 		var body_txt;
@@ -97,13 +99,38 @@ class Ingredient extends React.Component{
 			body_txt = (<span>no ingredients entered yet</span>)
 		}else{
 		body_txt = lst.map((number) =>
-    		<li>{number}</li>
+    		<li><Ingredient food={number}/></li>
   			);
 		}
 		return (<div>
 			{body_txt}
 			</div>)
 	}
+}
+class Ingredient extends React.Component{
+   constructor(props){
+      super(props)
+      this.buttonHandler = this.buttonHandler.bind(this)
+   }
+   buttonHandler(){
+      $.ajax({ 
+      method: "GET", 
+      url: "http://localhost:8088/api/remove/"+this.props.food
+   })
+
+   }
+
+   render(props){
+      var lst = this.props.food
+      
+      return (<table>
+         <tr><td>
+         {lst}
+         </td><td>
+         <button onClick={this.buttonHandler}>X</button>
+         </td></tr>
+         </table>)
+   }
 
 }
 
