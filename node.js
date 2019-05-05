@@ -3,6 +3,10 @@ var express = require('express');
 var multer = require('multer');
 var bodyParser = require('body-parser');
 var app = express();
+var ingredients=[];
+
+const WebHook = "https://edb1b6a7.ngrok.io";
+
 
 // import watson
 var VisualRecognitionV3 = require('watson-developer-cloud/visual-recognition/v3');
@@ -21,10 +25,13 @@ app.use('/',express.static('static_files')); // this directory has files to be r
 app.use(express.static('static')); 
 
 
-var Storage = multer.diskStorage({ destination: function(req, file, callback) { callback(null, "./Images"); }, filename: function(req, file, callback) { callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname); } });
+var Storage = multer.diskStorage(
+	{ destination: function(req, file, callback) { callback(null, "./static/uploads"); },
+	   filename: function (req, file, cb) {
+      	cb(null,  file.originalname );
+  		} });
 // var upload = multer({storage: Storage}).array("imgUploader", 3);
-var upload = multer({ dest: 'static/uploads/' })
-
+var upload = multer({ storage: Storage });
 // ********************************************
 
 app.use(function(req, res, next) {
@@ -37,30 +44,18 @@ app.get("/", function(req, res) {
 	res.sendFile(__dirname + "/index.html");
 });
 
-// app.post("/api/Upload", bodyParser.json({limit: "10mb"}), function(req, res) {
-// 	console.log(req);
-// 	upload(req, res, function(err) {
-// 		if (err) {
-// 			console.log(err);
-// 			return res.end("Something went wrong!");
-// 		}
-// 		console.log("i did it");
-// 		return res.end("File uploaded sucessfully!.");
-// 	});
-// });
-
+// This is a tempoary thing, to be switched
 app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
-    console.log(req.files)
-
-
-
+    console.log()
 
     res.send("done");
 });
 
+// Swap to Upload
 app.post('/api/Upload2', upload.array('file', 12), function (req, res, next) {
     
-	var url = 'https://edb1b6a7.ngrok.io/live-preview-potato.png';
+    // Make sure to change
+	var url = WebHook+'/uploads/'+ req.files[0].originalname;	
 	var classifier_ids = ["food"];
 
 	var params = {
@@ -70,30 +65,34 @@ app.post('/api/Upload2', upload.array('file', 12), function (req, res, next) {
 
 	visualRecognition.classify(params, function(err, response) {
   		if (err)
+  			// Failure
     		console.log(err);
-  		else
-    		console.log(JSON.stringify(response, null, 2))
+  		else{
+  			// Success
+    		// console.log(JSON.stringify(response, null, 2))
+    		// Read response and find none type hyarched data
+    		var lst = response.images[0].classifiers[0].classes
+    		console.log(lst.length)
+    		var lst1 = [];
+    		for (var i =0 ; i< lst.length; i++){
+    			if (lst[i].type_hierarchy){
+    				lst1.push(lst[i].class)
+    			}
+    		}
+    		console.log(lst1);
+    		wss.broadcast("");
+    		}
 		});
-
     res.send("done");
 });
 
-// remove ingrediant
-app.put('/api/remove', function (req, res) {
+// remove ingredient
+app.put('/api/remove/:ingredient', function (req, res) {
+	var i = req.params.ingredient;
 	var result = {};
   	res.status();
 	res.json(result);
 });
-
-// remove ingrediant
-app.put('/api/add', function (req, res) {
-	var result = {};
-  	res.status(404);
-	res.json(result);
-	console.log(req.body.name);
-});
-
-
 
 app.listen(8088, function () {
   console.log('Example app listening on port 8088!');
@@ -104,7 +103,6 @@ app.listen(8088, function () {
 var WebSocketServer = require('ws').Server
    ,wss = new WebSocketServer({port: 8090});
 
-var ingredients=[];
 var col = {};
 
 wss.on('close', function() {
@@ -118,8 +116,8 @@ wss.broadcast = function(message){
 }
 
 wss.on('connection', function(ws) {	
+	wss.broadcast("");
 	ws.on('message', function(message) {
 		wss.broadcast(message);
-		messages.push(message);
 	});
 });
