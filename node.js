@@ -44,15 +44,8 @@ app.get("/", function(req, res) {
 	res.sendFile(__dirname + "/index.html");
 });
 
-// This is a tempoary thing, to be switched
+// Send image to watson + Update ingredient list
 app.post('/api/Upload', upload.array('file', 12), function (req, res, next) {
-    console.log()
-
-    res.send("done");
-});
-
-// Swap to Upload
-app.post('/api/Upload2', upload.array('file', 12), function (req, res, next) {
     
     // Make sure to change
 	var url = WebHook+'/uploads/'+ req.files[0].originalname;	
@@ -72,14 +65,25 @@ app.post('/api/Upload2', upload.array('file', 12), function (req, res, next) {
     		// console.log(JSON.stringify(response, null, 2))
     		// Read response and find none type hyarched data
     		var lst = response.images[0].classifiers[0].classes
-    		console.log(lst.length)
+    		console.log(lst)
     		var lst1 = [];
     		for (var i =0 ; i< lst.length; i++){
     			if (lst[i].type_hierarchy){
-    				lst1.push(lst[i].class)
+    				// This is shit code -> From Anthony to Anthony
+    				var b = true;
+    				for (var j =0; j<ingredients.length; j++){
+    					if (ingredients[j] === lst[i].class){
+    						b=false;
+    					}
+    				}
+    				if (b){
+						ingredients.push(lst[i].class);
+    				}
+    				// End of shit code
     			}
     		}
-    		console.log(lst1);
+    		console.log(ingredients);
+    		// We want to broadcast all ingredients after
     		wss.broadcast("");
     		}
 		});

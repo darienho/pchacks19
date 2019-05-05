@@ -25,10 +25,9 @@ while True:
         img_name = "opencv_frame_{}.png".format(img_counter)
         cv2.imwrite(img_name, frame)
         print("{} written!".format(img_name))
-        img_counter += 1
 
         files = {'file': open(img_name, 'rb')}
-        requests.post('http://localhost:8088/api/Upload2/', files=files)
+        requests.post('http://localhost:8088/api/Upload/', files=files)
 
 cam.release()
 
